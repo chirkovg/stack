@@ -16,7 +16,14 @@
 enum sterr {NOERROR = 0, MEMORYERROR = 1, NOELEMENTS = 2,
             WRONGCOUNTER = 3, WRONGSIZE = 4, WRONGPOINTER = 5};
 
+const char* MYSTACKERROR[] = {"No error", "Error with memory allocation", "No elements to pop from stack", "The counter of stack is wrong", "Stack has wrong size", "Stack has wrong data pointer"};
+
 const size_t STSTACKSIZE = 10;
+
+template <typename data_t> class mystack_t;
+template <typename data_t>
+std::ostream& operator << (std::ostream& output, mystack_t<data_t>& st);
+
 
 template <typename data_t>
 class mystack_t
@@ -28,9 +35,11 @@ public:
     bool push(data_t val);
     data_t pop();
     bool ok();
+    void dump(const char* filename);
     void dump();
-    sterr geterror();
-    friend std::ostream& operator << (std::ostream& out, const mystack_t<data_t>& st);
+    sterr geterror() const;
+    const char* what() const;
+    friend std::ostream& operator << <>(std::ostream& output, mystack_t<data_t>& st);
 private:
     data_t* data;
     size_t count;
@@ -85,6 +94,7 @@ mystack_t <data_t>:: ~mystack_t()
         count = -1;
         size = -1;
     }
+    else throw geterror();
 }
 
 template <typename data_t>
@@ -219,17 +229,24 @@ bool mystack_t<data_t>::ok()
 
 
 template <typename data_t>
-sterr mystack_t<data_t>::geterror()
+sterr mystack_t<data_t>::geterror() const
 {
     return error;
 }
 
 template <typename data_t>
-std::ostream& operator << (std::ostream& output, const mystack_t<data_t>& st)
+const char* mystack_t<data_t>::what() const
+{
+    return MYSTACKERROR[geterror()];
+}
+
+template <typename data_t>
+std::ostream& operator << (std::ostream& output, mystack_t<data_t>& st)
 {
     output << "Stack Dump\n";
     output << "Stack_ok = " << st.ok() << '\n';
-    output << "Stack_error = " << st.geterror() << '\n';
+    output << "Stack_error = " << st.geterror() << ": ";
+    output << st.what() << '\n';
     output << "Size of stack = " << st.size << '\n';
     output << "Curent position = " << st.count << '\n';
     if (st.size >= 0 && st.count >= 0)
@@ -237,23 +254,31 @@ std::ostream& operator << (std::ostream& output, const mystack_t<data_t>& st)
         output << "Elements:\n";
         for (size_t curpos = 0; curpos < st.size; curpos++)
         {
-            output << st.data[curpos] << '\t' << st.data + curpos;
+            output << st.data[curpos] << "\t\t" << st.data + curpos;
+            if (curpos == st.count - 1)
+            {
+                output << "<=";
+            }
+            output << '\n';
         }
     }
     return output;
 }
 
 template<typename data_t>
-void mystack_t<data_t>::dump()
+void mystack_t<data_t>::dump(const char* filename)
 {
-    std::ofstream out("dump.txt");
-    assert(out);
-    out << this;
-    out.close();
+    std::ofstream output(filename);
+    assert(output);
+    output << *this;
+    output.close();
 }
 
-
-
+template <typename data_t>
+void mystack_t<data_t>::dump()
+{
+    std::cout << *this;
+}
 
 #endif
 

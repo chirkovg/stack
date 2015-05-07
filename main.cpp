@@ -9,6 +9,11 @@
 
 int main()
 {
-    mystack_t<int> st(10);
-    std::cout << st;
+    mystack_t<double> st(10);
+    st.push(15.3);
+    st.push(100);
+    st.push(3.14);
+    st.pop();
+    st.dump("dump1.txt");
 }
+
