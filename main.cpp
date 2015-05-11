@@ -9,11 +9,13 @@
 
 int main()
 {
-    mystack_t<double> st(10);
-    st.push(15.3);
-    st.push(100);
-    st.push(3.14);
-    st.pop();
-    st.dump("dump1.txt");
+    mystack_t<int> st;
+    st.push(5);
+    st.push(10);
+    int res = st.pop();
+    st.dump("/Users/chirkovg/stack");
+    std::cout << res << '\n';
+    res = st.pop();
+    std::cout << res;
 }
 

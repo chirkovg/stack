@@ -15,6 +15,7 @@
 
 enum sterr {NOERROR = 0, MEMORYERROR = 1, NOELEMENTS = 2,
             WRONGCOUNTER = 3, WRONGSIZE = 4, WRONGPOINTER = 5};
+#define MAXERROR WRONGPOINTER
 
 const char* MYSTACKERROR[] = {"No error", "Error with memory allocation", "No elements to pop from stack", "The counter of stack is wrong", "Stack has wrong size", "Stack has wrong data pointer"};
 
@@ -32,7 +33,7 @@ public:
     mystack_t();
     mystack_t(size_t size);
     ~mystack_t();
-    bool push(data_t val);
+    bool push(data_t newelem);
     data_t pop();
     bool ok();
     void dump(const char* filename);
@@ -49,52 +50,60 @@ private:
 
 template <typename data_t>
 mystack_t <data_t>::mystack_t():
-data  (new data_t[STSTACKSIZE]),
+//data  (new data_t[STSTACKSIZE]),
 count (0),
 size (STSTACKSIZE),
 error(NOERROR)
 {
-    if(!data)
+    try
     {
+        data = new data_t[STSTACKSIZE];
+    }
+    catch (std::bad_alloc& ba)
+    {
+        std::cerr << "can't allocate" << STSTACKSIZE*sizeof(data_t) << "bytes for mystack_t" << '\n';
         size = -1;
         count = -1;
         error = MEMORYERROR;
+        throw MEMORYERROR;
     }
-    else
-        memset(data,0,sizeof(data_t)*STSTACKSIZE);
+    memset(data, 0, sizeof(data_t) * size);
     ok();
 }
 
-
 template <typename data_t>
 mystack_t<data_t>::mystack_t(size_t size):
-data(new data_t[size]),
+//data(new data_t[size]),
 count(0),
 size (size),
 error(NOERROR)
 {
-    if (!data)
+    try
     {
+        data = new data_t[size];
+    }
+    catch (std::bad_alloc& ba)
+    {
+        std::cerr << "can't allocate" << size*sizeof(data_t) << "bytes for mystack_t" << '\n';
         size = -1;
         count = -1;
         error = MEMORYERROR;
+        throw MEMORYERROR;
     }
-    else
-        memset(data, 0, sizeof(data_t) * size);
+    memset(data, 0, sizeof(data_t) * size);
     ok();
 }
 
 template <typename data_t>
 mystack_t <data_t>:: ~mystack_t()
 {
-    if (ok())
+    if (error != WRONGPOINTER)
     {
         delete[] this -> data;
-        this -> data = nullptr;
-        count = -1;
-        size = -1;
     }
-    else throw geterror();
+    this -> data = nullptr;
+    count = 0;
+    size = 0;
 }
 
 template <typename data_t>
@@ -117,7 +126,7 @@ bool mystack_t<data_t>::push(data_t newelem)
         }
         if (!newdata)
         {
-            error = MEMORYERROR;
+            throw MEMORYERROR;
             return false;
         }
         //for (int i = 0; i < count; i++) newdata[i] = data[i];
@@ -196,8 +205,7 @@ data_t mystack_t<data_t>::pop()
     if(!ok()) return 0;
     if(count == 0)
     {
-        error = NOELEMENTS;
-        return 0;
+        throw NOELEMENTS;
     }
     data_t result = this -> data[--count];
     if (!ok()) return 0;
@@ -237,6 +245,10 @@ sterr mystack_t<data_t>::geterror() const
 template <typename data_t>
 const char* mystack_t<data_t>::what() const
 {
+    if (geterror() < 0 || geterror() > MAXERROR)
+    {
+        return "Error in error type";
+    }
     return MYSTACKERROR[geterror()];
 }
 
@@ -244,23 +256,21 @@ template <typename data_t>
 std::ostream& operator << (std::ostream& output, mystack_t<data_t>& st)
 {
     output << "Stack Dump\n";
+    output << "Stack_addr = " << &st << '\n';
     output << "Stack_ok = " << st.ok() << '\n';
     output << "Stack_error = " << st.geterror() << ": ";
     output << st.what() << '\n';
     output << "Size of stack = " << st.size << '\n';
     output << "Curent position = " << st.count << '\n';
-    if (st.size >= 0 && st.count >= 0)
+    output << "Elements:\n";
+    for (size_t curpos = 0; curpos < st.size; curpos++)
     {
-        output << "Elements:\n";
-        for (size_t curpos = 0; curpos < st.size; curpos++)
+        output << st.data[curpos] << "\t\t" << st.data + curpos;
+        if (curpos == st.count - 1)
         {
-            output << st.data[curpos] << "\t\t" << st.data + curpos;
-            if (curpos == st.count - 1)
-            {
-                output << "<=";
-            }
-            output << '\n';
+            output << "<=";
         }
+        output << '\n';
     }
     return output;
 }
@@ -268,6 +278,11 @@ std::ostream& operator << (std::ostream& output, mystack_t<data_t>& st)
 template<typename data_t>
 void mystack_t<data_t>::dump(const char* filename)
 {
+    if (!filename)
+    {
+        std::cerr << "Wrong filename in stack_dump";
+        return;
+    }
     std::ofstream output(filename);
     assert(output);
     output << *this;
