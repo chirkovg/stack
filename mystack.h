@@ -141,63 +141,6 @@ bool mystack_t<data_t>::push(data_t newelem)
 
 
 
-/*template<>
- void mystack_t<double>::dump()
- {
- FILE* dump = fopen("stackdump.txt", "w");
- assert(dump);
- fprintf(dump, "Stack Dump\n");
- fprintf(dump, "Stack_Ok = %d\n", ok());
- fprintf(dump, "Stack_error = %d\n", geterror());
- fprintf(dump, "Size of Stack = %zu\n", size);
- fprintf(dump, "Elements Count = %lu\n", count);
- fprintf(dump, "Elements:\n");
- for(int i = 0; i < size; i++)
- {
- fprintf(dump, "%3.3lg\t%p\n", data[i], data + i);  //!!!
- }
- fprintf(dump, "End of Dump\n");
- fclose(dump);
- }
- 
- template<>
- void mystack_t<int>::dump()
- {
- FILE* dump = fopen("stackdump.txt", "w+");
- assert(dump);
- fprintf(dump, "Stack Dump\n");
- fprintf(dump, "Stack_Ok = %d\n", ok());
- fprintf(dump, "Stack_error = %d\n", geterror());
- fprintf(dump, "Size of Stack = %zu\n", size);
- fprintf(dump, "Elements Count = %lu\n", count);
- fprintf(dump, "Elements:\n");
- for(int i = 0; i < size; i++)
- {
- fprintf(dump, "%3d\t%p\n", data[i], data + i);  //!!!
- }
- fprintf(dump, "End of Dump\n");
- fclose(dump);
- }
- 
- template<typename data_t>
- void mystack_t<data_t>::dump()
- {
- FILE* dump = fopen("stackdump.txt", "w");
- assert(dump);
- fprintf(dump, "Stack Dump\n");
- fprintf(dump, "Stack_Ok = %d\n", ok());
- fprintf(dump, "Stack_error = %d\n", geterror());
- fprintf(dump, "Size of Stack = %zu\n", size);
- fprintf(dump, "Elements Count = %d\n", count);
- fprintf(dump, "Elements:\n");
- for(int i = 0; i < size; i++)
- {
- fprintf(dump, "%p\n", data + i);  //!!!
- }
- fprintf(dump, "End of Dump\n");
- fclose(dump);
- }*/
-
 
 template <typename data_t>
 data_t mystack_t<data_t>::pop()
