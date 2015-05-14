@@ -25,6 +25,26 @@ template <typename data_t> class mystack_t;
 template <typename data_t>
 std::ostream& operator << (std::ostream& output, mystack_t<data_t>& st);
 
+class stack_exception : std::exception
+{
+public:
+    stack_exception(sterr errorarg):
+    error(errorarg)
+    {
+        
+    }
+    virtual const char* what()
+    {
+        if (error < 0 || error > MAXERROR)
+        {
+            return "Error in error type";
+        }
+        return MYSTACKERROR[error];
+    }
+private:
+    sterr error;
+    stack_exception();
+};
 
 template <typename data_t>
 class mystack_t
@@ -38,9 +58,10 @@ public:
     bool ok();
     void dump(const char* filename);
     void dump();
-    sterr geterror() const;
     const char* what() const;
+    sterr geterror() const;
     friend std::ostream& operator << <>(std::ostream& output, mystack_t<data_t>& st);
+    mystack_t<data_t> operator = (const mystack_t<data_t> source);
 private:
     data_t* data;
     size_t count;
@@ -50,7 +71,6 @@ private:
 
 template <typename data_t>
 mystack_t <data_t>::mystack_t():
-//data  (new data_t[STSTACKSIZE]),
 count (0),
 size (STSTACKSIZE),
 error(NOERROR)
@@ -61,11 +81,10 @@ error(NOERROR)
     }
     catch (std::bad_alloc& ba)
     {
-        std::cerr << "can't allocate" << STSTACKSIZE*sizeof(data_t) << "bytes for mystack_t" << '\n';
+        std::cerr << "can't allocate" << STSTACKSIZE*sizeof(data_t) << "bytes for mystack_t" << std::endl;
         size = -1;
         count = -1;
-        error = MEMORYERROR;
-        throw MEMORYERROR;
+        throw stack_exception(MEMORYERROR);
     }
     memset(data, 0, sizeof(data_t) * size);
     ok();
@@ -73,7 +92,6 @@ error(NOERROR)
 
 template <typename data_t>
 mystack_t<data_t>::mystack_t(size_t size):
-//data(new data_t[size]),
 count(0),
 size (size),
 error(NOERROR)
@@ -87,8 +105,7 @@ error(NOERROR)
         std::cerr << "can't allocate" << size*sizeof(data_t) << "bytes for mystack_t" << '\n';
         size = -1;
         count = -1;
-        error = MEMORYERROR;
-        throw MEMORYERROR;
+        throw stack_exception(MEMORYERROR);
     }
     memset(data, 0, sizeof(data_t) * size);
     ok();
@@ -99,7 +116,7 @@ mystack_t <data_t>:: ~mystack_t()
 {
     if (error != WRONGPOINTER)
     {
-        delete[] this -> data;
+        delete[] (this -> data);
     }
     this -> data = nullptr;
     count = 0;
@@ -126,10 +143,10 @@ bool mystack_t<data_t>::push(data_t newelem)
         }
         if (!newdata)
         {
-            throw MEMORYERROR;
+            std::cerr << "can't allocate" << newsize*sizeof(data_t) << "bytes for mystack_t" << '\n';
+            throw stack_exception(MEMORYERROR);
             return false;
         }
-        //for (int i = 0; i < count; i++) newdata[i] = data[i];
         memcpy(newdata, data, size*sizeof(data_t));
         delete[] data;
         data = newdata;
@@ -148,7 +165,7 @@ data_t mystack_t<data_t>::pop()
     if(!ok()) return 0;
     if(count == 0)
     {
-        throw NOELEMENTS;
+        throw stack_exception(NOELEMENTS);
     }
     data_t result = this -> data[--count];
     if (!ok()) return 0;
